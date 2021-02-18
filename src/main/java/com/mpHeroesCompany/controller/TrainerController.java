@@ -1,5 +1,6 @@
 package com.mpHeroesCompany.controller;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -17,10 +18,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mpHeroesCompany.entities.DailyPracticeState;
 //import com.mpHeroesCompany.entities.DailyPracticeState;
 import com.mpHeroesCompany.entities.Heroe;
 import com.mpHeroesCompany.entities.Trainer;
-//import com.mpHeroesCompany.entities.repo.DailyStateRepo;
+import com.mpHeroesCompany.entities.repo.DailyStateRepo;
 import com.mpHeroesCompany.entities.repo.HeroeRepo;
 import com.mpHeroesCompany.entities.repo.TrainerRepo;
 import com.mpHeroesCompany.service.TrainerService;
@@ -38,8 +40,8 @@ public class TrainerController {
 	@Autowired
 	private TrainerService trainerService;
 
-//	@Autowired
-//	private DailyStateRepo dailyStateRepo;
+	@Autowired
+	private DailyStateRepo dailyStateRepo;
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping("/addHeroe/{trainerId}")
@@ -47,6 +49,11 @@ public class TrainerController {
 		System.out.println(trainerId);
 		if (trainerRepo.existsById(trainerId)) {
 			System.out.println(heroeRequest);
+			DailyPracticeState day = new DailyPracticeState();
+			day.setDay(trainerService.getCurrentDate());
+			day.setPracticeCounter(0);
+			dailyStateRepo.save(day);
+			heroeRequest.setDailyPracticeState(day);
 			heroeRepo.save(heroeRequest);
 
 			Trainer trainer = trainerRepo.findById(trainerId).get();
@@ -68,7 +75,6 @@ public class TrainerController {
 		if (trainerRepo.existsById(trainerId)) {
 			System.out.println("heroeRequest = " + heroeRequest);
 			if (heroeRepo.existsById(heroeId)) {
-//				Heroe heroe = heroeRepo.findById(heroeId).get();
 				heroeRequest.setId(heroeId);
 				System.out.println("heroeRequest = " + heroeRequest);
 				heroeRepo.save(heroeRequest);
@@ -91,12 +97,17 @@ public class TrainerController {
 	public ResponseEntity<?> trainHeroe(@PathVariable int trainerId, @PathVariable int heroeId) {
 		if (trainerRepo.existsById(trainerId)) {
 			if (heroeRepo.existsById(heroeId)) {
+
 				Heroe heroe = heroeRepo.findById(heroeId).get();
-				Random rand = new Random();
-				int random = rand.nextInt(10);
-				heroe.setCurrentPower(heroe.getCurrentPower() / 100 * random + heroe.getCurrentPower());
-				heroeRepo.save(heroe);
-				return ResponseEntity.ok(heroe);
+				if (trainerService.isAllowToTrain(heroe.getDailyPracticeState())) {
+					Random rand = new Random();
+					int random = rand.nextInt(10);
+					heroe.setCurrentPower(heroe.getCurrentPower() / 100 * random + heroe.getCurrentPower());
+					heroeRepo.save(heroe);
+					return ResponseEntity.ok(heroe);
+				}
+				return ResponseEntity.badRequest()
+						.body(new MessageResponse("Error: hero can train just-5 times in one day!"));
 			} else {
 				return ResponseEntity.badRequest().body(new MessageResponse("Error: no heroes taken!"));
 			}
@@ -105,12 +116,13 @@ public class TrainerController {
 					.body(new MessageResponse("Error: no trainer exist with id: " + trainerId + "!"));
 		}
 	}
-//	private Date getCurrentDate() {
-//		int year = new Date().getYear();
-//		int month = new Date().getMonth();
-//		int date = new Date().getDate();
-//		return new Date(year, month, date);
-//	}
+
+	private Date getCurrentDate() {
+		int year = new Date().getYear();
+		int month = new Date().getMonth();
+		int date = new Date().getDate();
+		return new Date(year, month, date);
+	}
 
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerTrainer(@Valid @RequestBody Trainer trainerRequest) {

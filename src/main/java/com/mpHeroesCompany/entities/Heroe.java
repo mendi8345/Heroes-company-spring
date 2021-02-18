@@ -3,6 +3,7 @@ package com.mpHeroesCompany.entities;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -20,6 +21,6 @@ public class Heroe {
 	private int startingPower;
 	private int currentPower;
 	private String suitColors;
-//	@OneToMany(fetch = FetchType.LAZY)
-//	private Map<Date, Integer> dailyPracticeState = new HashMap<Date, Integer>();
+	@OneToOne
+	private DailyPracticeState dailyPracticeState;
 }
