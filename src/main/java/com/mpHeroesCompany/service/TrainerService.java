@@ -11,11 +11,11 @@ public class TrainerService {
 
 	public boolean isAllowToTrain(DailyPracticeState dailyPracticeState) {
 		if (dailyPracticeState.getDay().getDate() != getCurrentDate().getDate()) {
-			dailyPracticeState.setPracticeCounter(0);
+			dailyPracticeState.setPracticeCounter(5);
 		}
 
-		if (dailyPracticeState.getPracticeCounter() < 5) {
-			dailyPracticeState.setPracticeCounter(dailyPracticeState.getPracticeCounter() + 1);
+		if (dailyPracticeState.getPracticeCounter() > 0) {
+			dailyPracticeState.setPracticeCounter(dailyPracticeState.getPracticeCounter() - 1);
 			return true;
 		}
 		return false;

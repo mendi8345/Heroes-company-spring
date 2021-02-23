@@ -46,12 +46,10 @@ public class TrainerController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping("/addHeroe/{trainerId}")
 	public ResponseEntity<?> AddHeroe(@PathVariable int trainerId, @RequestBody Heroe heroeRequest) {
-		System.out.println(trainerId);
 		if (trainerRepo.existsById(trainerId)) {
-			System.out.println(heroeRequest);
 			DailyPracticeState day = new DailyPracticeState();
 			day.setDay(trainerService.getCurrentDate());
-			day.setPracticeCounter(0);
+			day.setPracticeCounter(5);
 			dailyStateRepo.save(day);
 			heroeRequest.setDailyPracticeState(day);
 			heroeRepo.save(heroeRequest);
@@ -59,7 +57,7 @@ public class TrainerController {
 			Trainer trainer = trainerRepo.findById(trainerId).get();
 			trainer.getHeroes().add(heroeRequest);
 			trainerRepo.save(trainer);
-			return ResponseEntity.ok(new MessageResponse("heroe is successfully added!"));
+			return ResponseEntity.ok(heroeRequest);
 
 		} else {
 
@@ -75,10 +73,16 @@ public class TrainerController {
 		if (trainerRepo.existsById(trainerId)) {
 			System.out.println("heroeRequest = " + heroeRequest);
 			if (heroeRepo.existsById(heroeId)) {
-				heroeRequest.setId(heroeId);
-				System.out.println("heroeRequest = " + heroeRequest);
-				heroeRepo.save(heroeRequest);
-				return ResponseEntity.ok(new MessageResponse("heroe successfully updated!"));
+				Heroe heroe = heroeRepo.findById(heroeId).get();
+				heroe.setAbility(heroeRequest.getName());
+				heroe.setAbility(heroeRequest.getAbility());
+				heroe.setCurrentPower(heroeRequest.getCurrentPower());
+				heroe.setStartingPower(heroeRequest.getStartingPower());
+				heroe.setStartDate(heroeRequest.getStartDate());
+				heroe.setSuitColors(heroeRequest.getSuitColors());
+
+				heroeRepo.save(heroe);
+				return ResponseEntity.ok(heroe);
 			} else {
 				return ResponseEntity.badRequest()
 						.body(new MessageResponse("Error:  hero don't exist with id: " + heroeId + "!"));
@@ -106,8 +110,7 @@ public class TrainerController {
 					heroeRepo.save(heroe);
 					return ResponseEntity.ok(heroe);
 				}
-				return ResponseEntity.badRequest()
-						.body(new MessageResponse("Error: hero can train just-5 times in one day!"));
+				return ResponseEntity.badRequest().body(new MessageResponse("	no workouts left for today!"));
 			} else {
 				return ResponseEntity.badRequest().body(new MessageResponse("Error: no heroes taken!"));
 			}
