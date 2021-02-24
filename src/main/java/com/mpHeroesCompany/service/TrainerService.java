@@ -10,8 +10,12 @@ import com.mpHeroesCompany.entities.DailyPracticeState;
 public class TrainerService {
 
 	public boolean isAllowToTrain(DailyPracticeState dailyPracticeState) {
+		System.out.println(" current dailyPracticeState = " + dailyPracticeState);
+		System.out.println(dailyPracticeState.getDay().getDate() != getCurrentDate().getDate());
+
 		if (dailyPracticeState.getDay().getDate() != getCurrentDate().getDate()) {
 			dailyPracticeState.setPracticeCounter(5);
+			dailyPracticeState.setDay(getCurrentDate());
 		}
 
 		if (dailyPracticeState.getPracticeCounter() > 0) {
